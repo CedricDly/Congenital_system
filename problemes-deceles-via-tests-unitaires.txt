@@ -1,0 +1,13 @@
+#####   Problèmes constatés lors des tests unitaires #####
+
+--> Dans la classe Robot(), de Classes.py :
+	* ligne 81 : la définition d'un robot inclue son orientation (N,S,E,O), mais elle est nécessairement mise à 1 au début de la partie. Pourquoi ?
+
+	* que se passe-t'il si un robot est créé hors des limites ? Le cas a t'il été pensé ?
+	* de même, que se passe-t'il si on génère un robot avec une orientation n'ppartenant pas à [0,3]
+		--> pour ses deux questions, il va falloir créer des accesseurs qui testeront lors de la création les coordonnées et l'orientation que les valeurs ne sont pas erronnées (ça je peux m'en occuper, c'est pas dur)
+	
+
+--> Dans la classe Terrain() :
+	* ligne 11 : quel est le rôle de la variable de classe self.spawn() ?
+
