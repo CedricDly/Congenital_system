@@ -1,0 +1,5 @@
+walk--
+idle--
+damaged
+firing
+dance
