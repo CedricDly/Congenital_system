@@ -1,34 +1,61 @@
 #coding:utf-8
 
-
+""" -----DISCLAIMER-----
+Certains commentaires font reference au compte-rendu de projet informatique. 
+Il est de bon ton de s'en premunir afin d'exploiter au mieux les differentes explications laissees pour le lecteur
+"""
 import random
 import operator
 import time
 
 class Terrain():
     def __init__(self,file_txt):
-        self.file  = file_txt
-        self.carte = self.load(self.file)
-        self.constantmap = self.carte
-        self.width = len(self.carte[0])
-        self.height = len(self.carte)
-        self.spawn = [(1,1),(1,15),(9,1),(9,15)]
+        """Constructeur de la classe Terrain
+        Parametres
+        ----------
+        file_txt : fichier texte 
+            Sert de base pour notre terrain (les cases sont reperees par differents caracteres) 
+        """
+        self.file  = file_txt #fichier hebergeant le terrain
+        self.carte = self.load(self.file) #voir methode load de la classe 
+        self.constantmap = self.carte #constantmap est une image a l'instant 0 de notre carte, qui servira lors de l'utilisation de la methode check
+        self.width = len(self.carte[0]) #largeur du terrain
+        self.height = len(self.carte) #hauteur du terrain
+        self.spawn = [(1,1),(1,15),(9,1),(9,15)] #lieux d'apparition (possibles) initiaux des robots 
         self.bot_pos = []
-        self.non_collidable=[' ','F','H','Z','Q','S','D','V','C','R']          #Trucs sur lesquels on peut marcher
-        self.collidable=['W','P','O','M','L','-','*','+','/','#','$','€','£']  #Trucs sur lesquels on peut pas marcher
-        self.special_collidable=['0','1','2','3','4','5','6','7','8','9']
-        self.load_Elements()
+        self.non_collidable=[' ','F','H','Z','Q','S','D','V','C','R'] #Caracteres representant les cases sur lesquels on peut marcher
+        self.collidable=['W','P','O','M','L','-','*','+','/','#','$','€','£'] #Caracteres representant les cases sur lesquels on ne peut pas marcher
+        self.special_collidable=['0','1','2','3','4','5','6','7','8','9'] #Caracteres representant les murs
+        self.load_Elements() #voir methode load_Elements de la classe Terrain
+        
     def load(self,file):
+        """ methode de chargement du terrain de jeu
+        
+        Parametres
+        ----------
+        file : fichier texte
+            Fichier hebergeant le terrain de jeu sous forme de caracteres
+            
+        Returns
+        -------
+        terrain : type liste
+            terrain est une liste qui contient chaque case du plateau de jeu, ordonee precisement. 
+            exemple : terrain[0,0] est la case tout en haut à gauche
+                      terrain[i,j] est la case situee a la (i-1)ème ligne, (j-1)ème colonne
+        """
         f=open(file)
-        Terrain = []
+        terrain = [] #creation de notre liste (de listes)
         for line in f:
-            L=[]
+            L=[] #creation d'une liste qui represente une ligne de notre terrain
             for el in line:
                 L.append(el)
             L.remove('\n')
-            Terrain.append(L)
-        return Terrain
+            terrain.append(L)
+        return terrain
+        
     def load_Elements(self):
+        """
+        """
         Holes=[]
         tapisH, tapisG, tapisD, tapisB = [],[],[],[]
         laserH, laserG, laserD, laserB = [],[],[],[]
@@ -84,6 +111,15 @@ class Terrain():
 class Robot():
     
     def __init__(self,terrain,name):
+        """ Constructeur de la classe Robot
+        
+        Parametres
+        ----------
+        terrain : fichier texte
+            Terrain hebergeant la partie
+        name : type str
+            Nom du robot
+        """
         self.name = name
         self.terrain = terrain
         self.rspawn =random.choice(self.terrain.spawn) 
@@ -97,50 +133,74 @@ class Robot():
         self.life = 9
         self.win = False
         self.update_map()
-        
+       
+    """ important : dans les 3 prochaines methodes, rien n'est renvoye, on met seulement a jour l'orientation du robot"""    
     def Turn_Right(self):
+        """ rotation du robot vers la droite
+        """
         self.dir = (self.dir+1)%4
         self.update_map()
         
     def Turn_Left(self):
+        """ rotation du robot vers la gauche
+        """
         self.dir = (self.dir+3)%4
         self.update_map()
         
     def U_Turn(self):
+        """demi-tour
+        """
         self.dir = (self.dir+2)%4
         self.update_map()
     
 
         
     def Forward(self,n):
+        """ Fonction qui gere le deplacement rectiligne du robot
+        
+        Parametres
+        ----------
+        n : type int
+            nb de cases dont il faut avancer
+            
+        Returns
+        -------
+        On ne retourne rien, on met juste a jour les coordonnees du robot
+        
+        See also
+        --------
+        Description de la methode check de la classe Robot
+        Descrption de la methode update_map de la classe Robot
+        """
         for i in range(n):
-
 
             if self.dir ==0 and self.check(self.x -1,self.y):
                 if self.terrain.carte[self.x][self.y]!='H':
                     self.x -=1
 
-
             if self.dir ==1 and self.check(self.x,self.y+1):
                 if self.terrain.carte[self.x][self.y]!='H':
                     self.y +=1
-
 
             if self.dir ==2 and self.check(self.x +1,self.y):
                 if self.terrain.carte[self.x][self.y]!='H':
                     self.x +=1
 
-
             if self.dir ==3 and self.check(self.x,self.y-1):
                 if self.terrain.carte[self.x][self.y]!='H':
                     self.y -=1
 
-            
-                
         self.update_map()
 
         
     def Backward(self):
+        """ Fonction qui gere le deplacement en marche arriere
+        
+        See also
+        --------
+        Description de la methode bkcheck de la classe Robot
+        Descrption de la methode update_map de la classe Robot
+        """
         if self.dir == 0 and self.bkcheck(self.x+1 ,self.y):
             self.x += 1
         if self.dir == 1 and self.bkcheck(self.x,self.y-1):
@@ -149,8 +209,10 @@ class Robot():
             self.x -= 1
         if self.dir == 3 and self.bkcheck(self.x,self.y+1):
             self.y += 1
+            
         self.update_map()
-    
+
+        
     def special_check(self,x,y):
         if self.dir==0 and (self.terrain.carte[x][y] in ['2','6','7','8'] or self.terrain.constantmap[self.x][self.y] in ['0','4','5','8']):
             return False
@@ -163,6 +225,7 @@ class Robot():
         else : 
             return True
 
+            
     def bkspecial_check(self,x,y):
         if self.dir==2 and (self.terrain.carte[x][y] in ['2','6','7','8'] or self.terrain.constantmap[self.x][self.y] in ['0','4','5','8']):
             return False
@@ -174,7 +237,8 @@ class Robot():
             return False
         else : 
             return True
-        
+
+            
     def bkcheck(self,x,y):
         
         if self.terrain.carte[x][y] in self.terrain.special_collidable or self.terrain.constantmap[self.x][self.y] in self.terrain.special_collidable:
@@ -186,7 +250,8 @@ class Robot():
             return True
         else:
             return False
-        
+ 
+            
     def check(self,x,y):
 
         if self.terrain.carte[x][y] in self.terrain.special_collidable or self.terrain.constantmap[self.x][self.y] in self.terrain.special_collidable:
@@ -198,7 +263,8 @@ class Robot():
             return True
         else:
             return False
-    
+ 
+            
     def update_map(self):
         self.terrain.carte = self.terrain.load(self.terrain.file)
         self.terrain.carte[self.x][self.y] = 'R'
@@ -207,6 +273,7 @@ class Robot():
         print('dir : ' + self.__dicoDir[self.dir])
         self.orientation = self.__dicoDir[self.dir]
         print(self.life)
+
         
     def handle_land(self):
         self.__coordsRobot = (self.x, self.y)
@@ -248,7 +315,8 @@ class Robot():
         # Invariant
         self.x,self.y =self.__coordsRobot
         self.update_map()
-    
+ 
+        
     def check_up_laser(self):
         vertical_exception = self.terrain.collidable + ['0','2','4','5','6','7','8','R','F']
         limit=[]
@@ -292,7 +360,8 @@ class Robot():
             if down_blocked and self.terrain.constantmap[self.x][self.y] in ['0','4','5']:
                 self.life-=1
                 print('perte en bas')            
-        
+
+                
     def check_left_laser(self):
         horizontal_exception = self.terrain.collidable + ['1','3','4','5','6','7','9','R','F']
         limit=[]
@@ -318,6 +387,7 @@ class Robot():
                 self.life-=1
                 print('perte en bas')    
 
+                
     def check_right_laser(self):
         horizontal_exception = self.terrain.collidable + ['1','3','4','5','6','7','9','R','F']
         limit=[]
@@ -344,18 +414,18 @@ class Robot():
             if right_blocked and self.terrain.constantmap[self.x][self.y] in ['3','4','7']:
                 self.life-=1
                 print('perte en bas')                
-        
+
+                
     def handle_endturn(self):      
         self.check_up_laser()
         self.check_down_laser()
         self.check_left_laser()
         self.check_right_laser()
-        
-      
-                    
+                     
         self.update_map()
                     
 
+        
 class Joueur():
     def __init__(self,robot,playername):
         self.robot = robot
@@ -418,11 +488,8 @@ class Joueur():
         self.robot.handle_land()
         self.robot.handle_endturn()
 
-            
-            
         
         
-
 class Joueur_Humain(Joueur):
     def __init__(self,robot,playername):
         super().__init__(robot,playername)
