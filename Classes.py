@@ -54,12 +54,15 @@ class Terrain():
         return terrain
         
     def load_Elements(self):
+        """ Méthode permettant de recueillir dans des listes les coordonnées des différents éléments de terrain
+        Returns
+        -------
+        Aucun. Néanmoins, cette méthode crée des variables de classe qui regroupent par élément (tapis roulant haut, bas, laser, etc...) les coordonnées d'apparition
         """
-        """
-        Holes=[]
-        tapisH, tapisG, tapisD, tapisB = [],[],[],[]
-        laserH, laserG, laserD, laserB = [],[],[],[]
-        turnC,turnA = [],[]
+        Holes=[] #trous
+        tapisH, tapisG, tapisD, tapisB = [],[],[],[] #tapis roulants
+        laserH, laserG, laserD, laserB = [],[],[],[] #lasers
+        turnC,turnA = [],[] #tourniquets
         for a,i in enumerate(self.carte) :
             for s,l in enumerate(i):
                 if i[s] =='F':
@@ -213,47 +216,23 @@ class Robot():
         self.update_map()
 
         
-    def special_check(self,x,y):
-        if self.dir==0 and (self.terrain.carte[x][y] in ['2','6','7','8'] or self.terrain.constantmap[self.x][self.y] in ['0','4','5','8']):
-            return False
-        elif self.dir==2 and (self.terrain.carte[x][y] in ['0','4','5','8'] or self.terrain.constantmap[self.x][self.y] in ['2','6','7','8']):
-            return False
-        elif self.dir==1 and (self.terrain.carte[x][y] in ['3','4','7','9'] or self.terrain.constantmap[self.x][self.y] in ['1','5','6','9']):
-            return False
-        elif self.dir==3 and (self.terrain.carte[x][y] in ['1','5','6','9'] or self.terrain.constantmap[self.x][self.y] in ['3','4','7','9']):
-            return False
-        else : 
-            return True
-
-            
-    def bkspecial_check(self,x,y):
-        if self.dir==2 and (self.terrain.carte[x][y] in ['2','6','7','8'] or self.terrain.constantmap[self.x][self.y] in ['0','4','5','8']):
-            return False
-        elif self.dir==0 and (self.terrain.carte[x][y] in ['0','4','5','8'] or self.terrain.constantmap[self.x][self.y] in ['2','6','7','8']):
-            return False
-        elif self.dir==3 and (self.terrain.carte[x][y] in ['3','4','7','9'] or self.terrain.constantmap[self.x][self.y] in ['1','5','6','9']):
-            return False
-        elif self.dir==1 and (self.terrain.carte[x][y] in ['1','5','6','9'] or self.terrain.constantmap[self.x][self.y] in ['3','4','7','9']):
-            return False
-        else : 
-            return True
-
-            
-    def bkcheck(self,x,y):
-        
-        if self.terrain.carte[x][y] in self.terrain.special_collidable or self.terrain.constantmap[self.x][self.y] in self.terrain.special_collidable:
-            if self.bkspecial_check(x,y):
-                return True
-            else:
-                return False
-        if self.terrain.carte[x][y] in self.terrain.non_collidable:
-            return True
-        else:
-            return False
- 
-            
     def check(self,x,y):
-
+        """ Vérifie si un robot peut aller sur la case de coordonnées (x , y) 
+        
+        Parametres
+        ----------
+        x et y : type int
+            coordonnees de la case à checker
+            
+        Returns
+        -------
+        True or False : Vrai si le robot peut aller sur la case, Faux sinon
+        
+        See also
+        --------
+        Cette méthode ne gère pas la traversée des murs. Pour cela, se reporter à la méthode special_check()
+        Cette méthode ne gère pas les robots qui recuelnt. Pour cela, se reporter à la méthode bkcheck()
+        """
         if self.terrain.carte[x][y] in self.terrain.special_collidable or self.terrain.constantmap[self.x][self.y] in self.terrain.special_collidable:
             if self.special_check(x,y):
                 return True
@@ -263,29 +242,124 @@ class Robot():
             return True
         else:
             return False
- 
             
+            
+    def special_check(self,x,y):
+        """ Vérifie si un robot peut aller sur la case de coordonnées (x , y).
+        La différence avec check() réside dans le fait qu'ici, on effectue des tests concernant les murs.
+        
+         Parametres
+        ----------
+        x et y : type int
+            coordonnees de la case à checker
+            
+        Autres variables intéressantes
+        ------------------------------
+        self.terrain.constantmap[self.x][self.y] est utilisé pour connaitre la case sur laquelle se trouve notre robot. 
+        En effet, self.terrain.carte[self.x][self.y] = 'R' quoi qu'il arrive. Ainsi, nous utilisons une copie à l'instant 0 de notre carte.
+            
+        Returns
+        -------
+        True or False : Vrai si le robot peut aller sur la case, Faux sinon
+        
+        See also
+        --------
+        Cette méthode ne gère que les tests d'un robot qui avance. Pour les tests du robot qui recule, se référer à bkspecial_check()
+        """
+        if self.dir==0 and (self.terrain.carte[x][y] in ['2','6','7','8'] or self.terrain.constantmap[self.x][self.y] in ['0','4','5','8']):
+            return False
+        elif self.dir==2 and (self.terrain.carte[x][y] in ['0','4','5','8'] or self.terrain.constantmap[self.x][self.y] in ['2','6','7','8']):
+            return False
+        elif self.dir==1 and (self.terrain.carte[x][y] in ['3','4','7','9'] or self.terrain.constantmap[self.x][self.y] in ['1','5','6','9']):
+            return False
+        elif self.dir==3 and (self.terrain.carte[x][y] in ['1','5','6','9'] or self.terrain.constantmap[self.x][self.y] in ['3','4','7','9']):
+            return False
+        # les quatre tests ci-dessus sont les possibilités qui impliquent un blocage du Robot. Si aucun n'est concluant, alors il peut passer
+        else : 
+            return True
+
+            
+    def bkcheck(self,x,y):
+        """ Vérifie si un robot qui recule peut aller sur la case de coordonnées (x , y) 
+        
+        Parametres
+        ----------
+        x et y : type int
+            coordonnees de la case à checker
+            
+        Returns
+        -------
+        True or False : Vrai si le robot peut aller sur la case, Faux sinon
+        
+        See also
+        --------
+        Cette méthode ne gère pas la traversée des murs. Pour cela, se reporter à la méthode bkspecial_check()
+        """
+        if self.terrain.carte[x][y] in self.terrain.special_collidable or self.terrain.constantmap[self.x][self.y] in self.terrain.special_collidable:
+            if self.bkspecial_check(x,y):
+                return True
+            else:
+                return False
+        if self.terrain.carte[x][y] in self.terrain.non_collidable:
+            return True
+        else:
+            return False
+          
+            
+    def bkspecial_check(self,x,y):
+        """ Vérifie si un robot qui recule peut aller sur la case de coordonnées (x , y).
+        La différence avec bkcheck() réside dans le fait qu'ici, on effectue des tests concernant les murs.
+        
+         Parametres
+        ----------
+        x et y : type int
+            coordonnees de la case à checker
+            
+        Autres variables intéressantes
+        ------------------------------
+        self.terrain.constantmap[self.x][self.y] est utilisé pour connaitre la case sur laquelle se trouve notre robot. 
+        En effet, self.terrain.carte[self.x][self.y] = 'R' quoi qu'il arrive. Ainsi, nous utilisons une copie à l'instant 0 de notre carte.
+            
+        Returns
+        -------
+        True or False : Vrai si le robot peut aller sur la case, Faux sinon
+        
+        """
+        if self.dir==2 and (self.terrain.carte[x][y] in ['2','6','7','8'] or self.terrain.constantmap[self.x][self.y] in ['0','4','5','8']):
+            return False
+        elif self.dir==0 and (self.terrain.carte[x][y] in ['0','4','5','8'] or self.terrain.constantmap[self.x][self.y] in ['2','6','7','8']):
+            return False
+        elif self.dir==3 and (self.terrain.carte[x][y] in ['3','4','7','9'] or self.terrain.constantmap[self.x][self.y] in ['1','5','6','9']):
+            return False
+        elif self.dir==1 and (self.terrain.carte[x][y] in ['1','5','6','9'] or self.terrain.constantmap[self.x][self.y] in ['3','4','7','9']):
+            return False
+        # les quatre tests ci-dessus sont les possibilités qui impliquent un blocage du Robot. Si aucun n'est concluant, alors il peut passer
+        else : 
+            return True
+         
     def update_map(self):
+        """ Mise à jour des principaux éléments de jeu, notamment la position des 'R' sur le terrain
+        """
         self.terrain.carte = self.terrain.load(self.terrain.file)
         self.terrain.carte[self.x][self.y] = 'R'
-        self.terrain.Render()
+        self.terrain.Render() #voir méthode Render()
         self.public_x,self.public_y = self.x,self.y
-        print('dir : ' + self.__dicoDir[self.dir])
+        print('dir : ' + self.__dicoDir[self.dir]) #affiche la direction dans laquelle se trouve le robot
         self.orientation = self.__dicoDir[self.dir]
-        print(self.life)
+        print(self.life) #affiche la vie actuelle du robot
 
         
     def handle_land(self):
         self.__coordsRobot = (self.x, self.y)
         unchanged = True
-        # Gestion du flag
+        """ Gestion du drapeau """
         if self.__coordsRobot == self.terrain.flag:
             self.win = True 
-        # Gestion des trous
+        """ Gestion des trous """
         for i in self.terrain.holes:
             if self.__coordsRobot ==i:
                 self.__coordsRobot=self.rspawn
-        # Gestion des tapis        
+        """ Gestion des tapis """        
         for i in self.terrain.tapisG:
             if self.__coordsRobot== i and self.check(self.x,self.y-1):
                 self.__coordsRobot =(self.__coordsRobot[0],self.__coordsRobot[1]-1)
@@ -305,18 +379,22 @@ class Robot():
                 if self.__coordsRobot== i and self.check(self.x+1,self.y):               
                     self.__coordsRobot =(self.__coordsRobot[0]+1,self.__coordsRobot[1])
                     unchanged = False
-        # Gestion des rotationneurs (oui ça veut rien dire mais voilà) 
+        """ Gestion des tourniquets """ 
         for i in self.terrain.turnA:
             if self.__coordsRobot== i:
                 self.Turn_Left()
         for i in self.terrain.turnC:
             if self.__coordsRobot== i:
                 self.Turn_Right()
-        # Invariant
+        """ Invariant """
         self.x,self.y =self.__coordsRobot
         self.update_map()
  
-        
+    """ POUR LES 4 METHODES SUIVANTES :
+        elles sont très similaires, seule la directon des lasers et l'orientation des murs change. 
+        Ainsi la description ne sera faite qu'une seule fois
+    """
+
     def check_up_laser(self):
         vertical_exception = self.terrain.collidable + ['0','2','4','5','6','7','8','R','F']
         limit=[]
@@ -421,22 +499,39 @@ class Robot():
         self.check_down_laser()
         self.check_left_laser()
         self.check_right_laser()
-                     
         self.update_map()
                     
 
         
 class Joueur():
     def __init__(self,robot,playername):
+        """ Constructeur de la classe Joueur
+        
+        Parametres
+        ----------
+        robot : objet Robot
+            robot du joueur
+        playername : type str
+            Nom du joueur
+        """
         self.robot = robot
         self.name = playername
         self.robot_life = self.robot.life
-        self.deck = ['M1']*16+['M2']*12+['M3']*6+['BU']*6+['RR']*18+['RL']*18+['UT']*6
-        self.choice = ['Do_nothing']
-        self.menu = []
+        self.deck = ['M1']*16+['M2']*12+['M3']*6+['BU']*6+['RR']*18+['RL']*18+['UT']*6 # paquet de cartes de notre joueur
+        self.choice = ['Do_nothing'] # main du joueur. Le 'Do_nothing' est présent si l'utilisateur souhaite ne pas jouer l'intégralité de ses cartes
+        self.menu = [] # liste qui va être complétée par les cartes que l'utilisateur veut jouer pendant un tour 
         self.flag_nb = 0
     
     def pick_cards(self):
+        """ Méthode qui régit la pioche aléatoire de cartes dans le deck
+            On commence par savoir si l'utilisateur à le droit de piocher.
+            Si oui, alors on choisit une carte aléatoire de son deck, que l'on ajoute à sa main (variable de type liste self.choice).
+            On répète l'opération jusqu'à avoir autant de cartes que de points de vie.
+            
+            See also
+            --------
+            check_pioche() de la classe Joueur
+        """
         if self.check_pioche()==True:
             self.choice = ['Do_nothing']
             deck = self.deck
@@ -448,13 +543,21 @@ class Joueur():
             self.choice = self.menu
             
     def check_pioche(self):
+        """ Méthode qui vérifie, en fonction de la vie de son robot, si le joueur est autorisé à tirer des cartes de son deck
+        
+        Returns
+        -------
+        True or False : Vrai si l'utilisateur est autorisé à piocher, faux sinon
+        """
         if self.robot.life < 5:
-            return False
+            return False # si le robot a moins de 5 PV, l'utilisateur ne pioche pas de nouvelles cartes
         else:
             return True
  
     def menu_execute(self,param):
-
+        """ Execution du programme pour le robot
+        
+        """
         if param=='M1'and not(self.robot.win):
             print('performing M1')
             self.robot.Forward(1)
@@ -553,7 +656,7 @@ class Game:
         print("------------------------------------------------------")
         print("| Début du programme d'initialisation de la partie : |")
         print("------------------------------------------------------")
-        player_nb = int(input("Combien de joueur disputerons cette partie ?\n Maximum de 4 joueurs   "))
+        player_nb = int(input("Combien de joueurs disputerons cette partie ?\n Maximum de 4 joueurs   "))
         self.player_nb = min(player_nb,4)
         print("-----------------------")
         print("| Création des Robots |")
