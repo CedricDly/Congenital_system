@@ -555,8 +555,21 @@ class Joueur():
             return True
  
     def menu_execute(self,param):
-        """ Execution du programme pour le robot
+        """ Execution d'une instruction par le robot
         
+        Parametres
+        ----------
+        param : type str
+            action à effectuer par le robot
+        
+        Autres variables
+        ----------------
+        robot.win : type booléen
+            on utilise cette variable au cas où le robot atteigne le drapeau avant la fin du programme
+            
+        Returns
+        -------
+        Cette méthode ne renvoit rien, elle déclenche simplement les actions adéquates
         """
         if param=='M1'and not(self.robot.win):
             print('performing M1')
@@ -594,11 +607,23 @@ class Joueur():
         
         
 class Joueur_Humain(Joueur):
+    """ Classe définissant le joueur contrôlé par un utilisateur 
+        Hérite de Joueur
+    """
     def __init__(self,robot,playername):
+        """ Constructeur de la classe : identique à celui de la classe mère """
         super().__init__(robot,playername)
         
     def make_program(self):
-        pgsize=min(5,self.robot_life)
+        """ Réalisation d'un tour par le joueur humain
+            Il est demandé au joueur de chosir un programme parmi les cartes (aléatoires) qu'il a en main
+            
+            Returns
+            -------
+            self.menu : type liste
+                cartes jouées par l'utilisateur pour ce tour
+        """
+        pgsize=min(5,self.robot_life) # Taille du programme (il dépend de la vie du robot)
         remaining_choice = self.choice
         self.menu = []
         choix = 0
@@ -640,8 +665,15 @@ class Joueur_Brownien(Joueur):
 
 class Game:
     def __init__(self,terrain):
+        """ Constructeur de la classe
+        
+        Parametres
+        ----------
+        terrain : fichier texte
+            terrain de jeu pour la partie
+        """
         self.terrain = terrain
-        self.type = [Joueur_Humain,Joueur_Brownien]
+        self.type = [Joueur_Humain,Joueur_Brownien] #types d'IA et humain disponibles
         self.haste = {'M3':0,'M2':50,'M1':100,'BU':100,'RR':150,'RL':150,'UT':150,'Do_nothing':150}
         self.robot_lst = []
         self.player_lst = []
@@ -1054,19 +1086,3 @@ class Game:
         if len(self.robot_lst)<=0:
             self.Finished()
             self.Game_Over()
-            
-
-            
-            
-        
-        
-            
-            
-        
-        
-        
-    
-    
- 
-
-
