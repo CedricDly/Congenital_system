@@ -61,6 +61,22 @@ def IA_Test_Brownien():
         print('looser')
     else :
         print("Félicitation Maitre")
+        
+def IA_Test_Tout_Droit():
+    land = c.Terrain('window_test.txt')
+    rob = c.Robot(land,"Larry")
+    player1 = c.IA_Tout_Droit(rob,'Testeur')
+    while not player1.robot.win and player1.robot.life > 0:
+        player1.pick_cards()
+        print('Picked cards ',player1.choice)
+        a = player1.make_program()
+        for i in a:
+            player1.menu_execute(i)
+        print('Vie du Robot : ',player1.robot.life)
+    if player1.robot.life<=0:
+        print('looser')
+    else :
+        print("Félicitation Maitre")
 
 
 ##############################################################################
@@ -69,6 +85,7 @@ def IA_Test_Brownien():
 #Robot_Test() 
 #Human_Player_Test()
 #IA_Test_Brownien()
+IA_Test_Tout_Droit()
 
-land = c.Terrain('window_test.txt')
-jeu =c. Game(land)
+#land = c.Terrain('window_test.txt')
+#jeu =c. Game(land)

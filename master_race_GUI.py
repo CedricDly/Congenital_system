@@ -304,4 +304,5 @@ def lancer_partie():
     partie = c.Game(land)
  
 Thread(target = lancer_partie()).start()
-Thread(target = hello()).start()
+#Thread(target = hello()).start()
+

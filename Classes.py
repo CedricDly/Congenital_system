@@ -659,7 +659,128 @@ class Joueur_Brownien(Joueur):
         print('Les Dés sont jettés :')
         print('Menu : ',self.menu)
         return self.menu
+
         
+class IA_Tout_Droit(Joueur):
+    
+    def __init__(self,robot,playername):
+        super().__init__(robot,playername)
+        self.robotDir = self.robot.dir
+        self.coorFlag = self.robot.terrain.flag
+        
+    def mise_en_position(self):
+        """Définit l'orientation dans laquelle le robot doit se mettre
+        
+        Returns
+        -------
+        direction_a_prendre : type int
+            direction dans laquelle le robot doit se mettre pour aller au drapeau
+        """
+        posDrapeau = self.coorFlag
+        if self.robot.x > posDrapeau[0]:
+            direction_a_prendre = 3
+        elif self.robot.x < posDrapeau[0]:
+            direction_a_prendre = 1
+        elif self.robot.y > posDrapeau[1]:
+            direction_a_prendre = 0
+        elif self.robot.y < posDrapeau[1]:
+            direction_a_prendre = 2
+        
+        return direction_a_prendre
+
+
+    def direction_rotation(self,robotDir,orientationOpti):
+        """définit la carte à jouer pour que le robot se trouve dans la position optimale
+        
+        Parametres
+        ----------
+        robotDir : type int
+            orientation actuelle du robot
+        orientationOpti : type int
+            orientation dans laquelle le robot doit se mettre
+        
+        Returns
+        -------
+        carte_a_jouer : type str
+            mouvement à effectuer
+        """
+        carte_a_jouer = 0
+        
+        if robotDir == 0:
+            if orientationOpti == 1 :
+                carte_a_jouer = 'RR'
+            elif orientationOpti == 2:
+                carte_a_jouer == 'UT'
+            elif orientationOpti == 3:
+                carte_a_jouer == 'RL'
+        
+        elif robotDir == 1:
+            if orientationOpti == 2 :
+                carte_a_jouer = 'RR'
+            elif orientationOpti == 3:
+                carte_a_jouer == 'UT'
+            elif orientationOpti == 0:
+                carte_a_jouer == 'RL'
+                
+        elif robotDir == 2:
+            if orientationOpti == 3 :
+                carte_a_jouer = 'RR'
+            elif orientationOpti == 0:
+                carte_a_jouer == 'UT'
+            elif orientationOpti == 1:
+                carte_a_jouer == 'RL'
+        
+        elif robotDir == 3:
+            if orientationOpti == 0 :
+                carte_a_jouer = 'RR'
+            elif orientationOpti == 1:
+                carte_a_jouer == 'UT'
+            elif orientationOpti == 2:
+                carte_a_jouer == 'RL'
+                
+        return carte_a_jouer
+            
+            
+    def make_program(self):
+        pgsize = min(5,self.robot_life)
+        remaining_choice = self.choice
+        self.menu = []
+        orientationOpti = self.mise_en_position()
+        print("l'orientation optimale est : ", orientationOpti)
+        flagOrientation = False
+        flagAvancement = False
+        for i in range(pgsize):
+            rotationOpti = self.direction_rotation(self.robotDir,orientationOpti)
+            print ("la rotation optimale est : ", rotationOpti)
+            
+            if rotationOpti !=0 :
+                for carte in remaining_choice:
+                    if carte == rotationOpti:
+                        self.menu.append(carte)
+                        remaining_choice.remove(carte)
+                        flagOrientation = True
+                        break
+                    
+            if flagOrientation == False and rotationOpti != 0:
+                new_move = random.choice(remaining_choice)
+                self.menu.append(new_move)
+                if new_move !='Do_nothing':
+                    remaining_choice.remove(new_move)
+            else:
+                for cartebis in remaining_choice:
+                    if cartebis[0]=='M':
+                        self.menu.append(cartebis)
+                        remaining_choice.remove(cartebis)
+                        flagAvancement = True
+                if flagAvancement == False :
+                    new_move = random.choice(remaining_choice)
+                    self.menu.append(new_move)
+                    if new_move !='Do_nothing':
+                        remaining_choice.remove(new_move)
+                    
+        print('Les Dés sont jettés :')
+        print('Menu : ',self.menu)
+        return self.menu        
 
 
 
@@ -673,7 +794,7 @@ class Game:
             terrain de jeu pour la partie
         """
         self.terrain = terrain
-        self.type = [Joueur_Humain,Joueur_Brownien] #types d'IA et humain disponibles
+        self.type = [Joueur_Humain,Joueur_Brownien,IA_Tout_Droit] #types d'IA et humain disponibles
         self.haste = {'M3':0,'M2':50,'M1':100,'BU':100,'RR':150,'RL':150,'UT':150,'Do_nothing':150}
         self.robot_lst = []
         self.player_lst = []
@@ -705,8 +826,8 @@ class Game:
             print("----------------------------")
             print("|Paramétrage du joueur {} : |".format(i+1))
             print("----------------------------")
-            while type not in [1,2]:
-                type = int(input("Type du Joueur {} \n 1: Human \n 2: COM (Brownien) \n".format(i+1)))
+            while type not in [1,2,3]:
+                type = int(input("Type du Joueur {} \n 1: Human \n 2: COM (Brownien) \n 3: COM (IA_Tout_Droit) \n".format(i+1)))
             name = input("Quel est le nom du Joueur {} ?\n".format(i+1))
             self.player_lst.append(self.type[type-1](self.robot_lst[i],name))
             
