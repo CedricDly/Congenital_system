@@ -678,13 +678,13 @@ class IA_Tout_Droit(Joueur):
         """
         posDrapeau = self.coorFlag
         if self.robot.x > posDrapeau[0]:
-            direction_a_prendre = 3
-        elif self.robot.x < posDrapeau[0]:
-            direction_a_prendre = 1
-        elif self.robot.y > posDrapeau[1]:
             direction_a_prendre = 0
-        elif self.robot.y < posDrapeau[1]:
+        elif self.robot.x < posDrapeau[0]:
             direction_a_prendre = 2
+        elif self.robot.y > posDrapeau[1]:
+            direction_a_prendre = 3
+        elif self.robot.y < posDrapeau[1]:
+            direction_a_prendre = 1
         
         return direction_a_prendre
 
@@ -710,33 +710,33 @@ class IA_Tout_Droit(Joueur):
             if orientationOpti == 1 :
                 carte_a_jouer = 'RR'
             elif orientationOpti == 2:
-                carte_a_jouer == 'UT'
+                carte_a_jouer = 'UT'
             elif orientationOpti == 3:
-                carte_a_jouer == 'RL'
+                carte_a_jouer = 'RL'
         
         elif robotDir == 1:
             if orientationOpti == 2 :
                 carte_a_jouer = 'RR'
             elif orientationOpti == 3:
-                carte_a_jouer == 'UT'
+                carte_a_jouer = 'UT'
             elif orientationOpti == 0:
-                carte_a_jouer == 'RL'
+                carte_a_jouer = 'RL'
                 
         elif robotDir == 2:
             if orientationOpti == 3 :
                 carte_a_jouer = 'RR'
             elif orientationOpti == 0:
-                carte_a_jouer == 'UT'
+                carte_a_jouer = 'UT'
             elif orientationOpti == 1:
-                carte_a_jouer == 'RL'
+                carte_a_jouer = 'RL'
         
         elif robotDir == 3:
             if orientationOpti == 0 :
                 carte_a_jouer = 'RR'
             elif orientationOpti == 1:
-                carte_a_jouer == 'UT'
+                carte_a_jouer = 'UT'
             elif orientationOpti == 2:
-                carte_a_jouer == 'RL'
+                carte_a_jouer = 'RL'
                 
         return carte_a_jouer
             
@@ -747,6 +747,9 @@ class IA_Tout_Droit(Joueur):
         self.menu = []
         orientationOpti = self.mise_en_position()
         print("l'orientation optimale est : ", orientationOpti)
+        print("coordonnees du robot : ",self.robot.x," ",self.robot.y)
+        print("orientation du robot : ",self.robotDir)
+        print("coordonnes du drapeau : ",self.coorFlag)
         flagOrientation = False
         flagAvancement = False
         for i in range(pgsize):
@@ -782,8 +785,108 @@ class IA_Tout_Droit(Joueur):
         print('Menu : ',self.menu)
         return self.menu        
 
+class IA_DevantMaisPasTrop(IA_Tout_Droit):
+    
+    def __init__(self,robot,playername):
+        super().__init__(robot,playername)
+        
+    def distanceDrapeauX(self):
+        """ Retourne la distance suivant X séparant le drapeau et le robot
+            Prend en compte la direction du robot
+            
+            Returns
+            -------
+            dx : type None ou int
+                distance suivant x entre le robot et le drapeau. Retourne None si le robot est orienté vers le nord ou le sud
+        """
+        if self.robotDir == 2 :
+            dx = self.coorFlag[0] - self.robot.x
+        elif self.robotDir == 0:
+            dx = self.robot.x - self.coorFlag[0]
+        else:
+            dx = None
+        return dx
+        
+    def distanceDrapeauY(self):
+        """ Retourne la distance suivant Y séparant le drapeau et le robot
+            Prend en compte la direction du robot
+            
+            Returns
+            -------
+            dy : type None ou int
+                distance suivant y entre le robot et le drapeau. Retourne None si le robot est orienté vers l'est ou l'ouest
+        """
+        if self.robotDir == 3:
+            dy = self.robot.y - self.coorFlag[1]
+        elif self.robotDir == 1:
+            dy = self.coorFlag[1] - self.robot.y
+        else :
+            dy = None
+        return dy
+    
+    def renvoieBonneValeur(self,x,y):
+        if x == None and y == None :
+            return 1000
+        elif x == None :
+            return y
+        elif y == None:
+            return x
+                      
+    def make_program_V2(self):
+        """ Realisation d'un tour de jeu
+            Du fait que la classe hérite de IA_Tout_Droit, le V2 est de mise
+            
+            Return
+            ------
+            self.menu : type liste
+                cartes choisies pour le tour de jeu
+        """
+        pgsize = min(5,self.robot_life)
+        remaining_choice = self.choice
+        self.menu = []
+        orientationOpti = self.mise_en_position()
+        print("l'orientation optimale est : ", orientationOpti)
+        print("direction du robot : {}".format(self.robotDir))
+        flagOrientation = False
+        for i in range(pgsize):
+            flagAvancement = False
+            rotationOpti = self.direction_rotation(self.robotDir,orientationOpti)
+            print ("la rotation optimale est : ", rotationOpti)
+            
+            if rotationOpti != 0 :
+                for carte in remaining_choice:
+                    if carte == rotationOpti:
+                        self.menu.append(carte)
+                        remaining_choice.remove(carte)
+                        flagOrientation = True
+                        break
+                    
+            if flagOrientation == False and rotationOpti != 0:
+                new_move = random.choice(remaining_choice)
+                self.menu.append(new_move)
+                if new_move !='Do_nothing':
+                    remaining_choice.remove(new_move)
+            else:
+                X = self.distanceDrapeauX()
+                Y = self.distanceDrapeauY()
+                valeurAvancementMax = self.renvoieBonneValeur(X,Y)
+                for cartebis in remaining_choice:
+                    if cartebis[0]=='M':
+                        if int(cartebis[1]) <= valeurAvancementMax : #l'IA droit devant mais pas trop ne dépasse pas le drapeau
+                            self.menu.append(cartebis)
+                            remaining_choice.remove(cartebis)
+                            flagAvancement = True
+                if flagAvancement == False :
+                    new_move = random.choice(remaining_choice)
+                    self.menu.append(new_move)
+                    if new_move !='Do_nothing':
+                        remaining_choice.remove(new_move)
+                    
+        print('Les Dés sont jettés :')
+        print('Menu : ',self.menu)
+        return self.menu        
 
-
+        
 class Game:
     def __init__(self,terrain):
         """ Constructeur de la classe
@@ -826,8 +929,8 @@ class Game:
             print("----------------------------")
             print("|Paramétrage du joueur {} : |".format(i+1))
             print("----------------------------")
-            while type not in [1,2,3]:
-                type = int(input("Type du Joueur {} \n 1: Human \n 2: COM (Brownien) \n 3: COM (IA_Tout_Droit) \n".format(i+1)))
+            while type not in [1,2,3,4]:
+                type = int(input("Type du Joueur {} \n 1: Human \n 2: COM (Brownien) \n 3: COM (IA_Tout_Droit) \n 4: COM (IA_Tout_Droit_Mais_Pas_Trop) \n".format(i+1)))
             name = input("Quel est le nom du Joueur {} ?\n".format(i+1))
             self.player_lst.append(self.type[type-1](self.robot_lst[i],name))
             
